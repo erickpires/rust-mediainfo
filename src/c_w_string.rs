@@ -1,3 +1,15 @@
+// A wrapper for converting Rust strings into C wide char strings
+// and vice-versa. The conversion uses the C API, which is the
+// best way that I could think of getting the correct result
+// always. Since it uses the C API, a call to 'setlocale()' must
+// be made before any of theses functions are called or some strange
+// behaviour may be encountered.
+
+// This implementation is not the most efficient way of making this
+// conversion (allocation-wise), but some trade-off has to be made
+// between efficiency and safety. It would not have to be this way
+// if C had a better string implementation.
+
 #![allow(dead_code, non_camel_case_types)]
 extern crate libc;
 
