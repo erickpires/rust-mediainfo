@@ -18,6 +18,7 @@ type c_MediaInfoInfo   = libc::c_int;
 
 const LC_CTYPE: c_int = 0;
 
+#[derive(Debug, Clone, Copy)]
 pub enum MediaInfoStream {
     General = 0,
     Video,
@@ -35,6 +36,7 @@ impl MediaInfoStream {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum MediaInfoInfo {
     Name = 0,
     Text,
