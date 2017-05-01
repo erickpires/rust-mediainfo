@@ -1,6 +1,6 @@
 extern crate mediainfo;
 
-use mediainfo::ffi::MediaInfo;
+use mediainfo::MediaInfo;
 
 fn main() {
     let mut media_info = MediaInfo::new();

@@ -1,6 +1,6 @@
 extern crate mediainfo;
 
-use mediainfo::ffi::MediaInfo;
+use mediainfo::MediaInfo;
 
 fn main() {
     let mut media_info = MediaInfo::new();
@@ -12,7 +12,7 @@ fn main() {
 
     for filename in tracks.iter() {
         media_info.open(filename);
-        println!("File: {}", filename);
+        println!("Filename: {}", filename);
 
         println!("Title: {}", media_info.get_title());
         println!("Artist: {}", media_info.get_performer());

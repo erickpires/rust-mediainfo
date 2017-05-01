@@ -4,9 +4,10 @@ extern crate libc;
 mod c_w_string;
 pub mod ffi;
 
-use ffi::MediaInfo;
 use ffi::MediaInfoStream;
 use ffi::MediaInfoInfo;
+
+pub type MediaInfo = ffi::MediaInfo;
 
 impl MediaInfo {
     pub fn from_data(&mut self, data: &[u8]) -> Result<(), String>{
