@@ -193,7 +193,9 @@ pub enum MediaInfoError {
 
 pub type MediaInfoResult<T> = Result<T, MediaInfoError>;
 
-#[link(name="mediainfo")]
+// NOTE(erick): This was needed in rust 1.6, keeping
+// here for historical purpose.
+// #[link(name="mediainfo")]
 extern "C" {
     fn MediaInfo_New() -> *mut void;
     fn MediaInfo_Delete(handle: *mut void);
