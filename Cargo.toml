@@ -6,6 +6,12 @@ authors = ["Erick Pires <pires@erickpires.com>"]
 license = "MIT"
 links = "mediainfo"
 build = "build.rs"
+repository = "https://github.com/erickpires/rust-mediainfo"
+keywords = ["mediainfo", "libmediainfo", "MediaInfo"]
+readme = "README.md"
+exclude = [
+    "examples/*"
+]
 
 [dependencies]
 libc = "0.1"
