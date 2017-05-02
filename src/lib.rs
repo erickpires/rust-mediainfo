@@ -9,6 +9,7 @@ use ffi::MediaInfoInfo;
 
 pub type MediaInfo = ffi::MediaInfo;
 pub type MediaInfoResult<T> = ffi::MediaInfoResult<T>;
+pub type MediaInfoError = ffi::MediaInfoError;
 
 impl MediaInfo {
     pub fn from_data(&mut self, data: &[u8]) -> Result<(), String>{
@@ -50,27 +51,23 @@ impl MediaInfo {
         self.get_with_default_options("Track")
     }
 
-    pub fn get_duration_ms(&mut self) -> Option<u32> {
-        let result_str = self.get_with_default_options("Duration");
-        if result_str.is_err() { return None; }
-
-        let result = result_str.unwrap().parse::<u32>();
+    pub fn get_duration_ms(&mut self) -> MediaInfoResult<u32> {
+        let result_str = self.get_with_default_options("Duration")?;
+        let result = result_str.parse::<u32>();
 
         match result {
-            Ok(num) => Some(num),
-            Err(_)  => None,
+            Ok(num) => Ok(num),
+            Err(_)  => Err(ffi::MediaInfoError::NonNumericResultError),
         }
     }
 
-    pub fn get_track_number(&mut self) -> Option<u32> {
-        let result_str = self.get_with_default_options("Track/Position");
-        if result_str.is_err() { return None; }
-
-        let result = result_str.unwrap().parse::<u32>();
+    pub fn get_track_number(&mut self) -> MediaInfoResult<u32> {
+        let result_str = self.get_with_default_options("Track/Position")?;
+        let result = result_str.parse::<u32>();
 
         match result {
-            Ok(num) => Some(num),
-            Err(_)  => None,
+            Ok(num) => Ok(num),
+            Err(_)  => Err(ffi::MediaInfoError::NonNumericResultError),
         }
     }
 

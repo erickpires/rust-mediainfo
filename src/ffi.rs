@@ -131,7 +131,10 @@ impl MediaInfo {
             let result = result_c_string.unwrap().into_string();
             if result.is_err() { return Err(MediaInfoError::CToRustError); }
 
-            Ok(result.unwrap())
+            let result = result.unwrap();
+            if result.len() == 0 { return Err(MediaInfoError::ZeroLengthResultError); }
+
+            Ok(result)
         }
     }
 
@@ -146,7 +149,10 @@ impl MediaInfo {
             let result = result_c_string.unwrap().into_string();
             if result.is_err() { return Err(MediaInfoError::CToRustError); }
 
-            Ok(result.unwrap())
+            let result = result.unwrap();
+            if result.len() == 0 { return Err(MediaInfoError::ZeroLengthResultError); }
+
+            Ok(result)
         }
     }
 
@@ -172,7 +178,10 @@ impl MediaInfo {
             let result = result_c_string.unwrap().into_string();
             if result.is_err() { return Err(MediaInfoError::CToRustError); }
 
-            Ok(result.unwrap())
+            let result = result.unwrap();
+            if result.len() == 0 { return Err(MediaInfoError::ZeroLengthResultError); }
+
+            Ok(result)
         }
     }
 }
@@ -189,6 +198,8 @@ impl Drop for MediaInfo {
 pub enum MediaInfoError {
     RustToCStringError,
     CToRustError,
+    ZeroLengthResultError,
+    NonNumericResultError,
 }
 
 pub type MediaInfoResult<T> = Result<T, MediaInfoError>;
