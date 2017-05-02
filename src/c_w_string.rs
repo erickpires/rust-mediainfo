@@ -45,24 +45,28 @@ impl CWcharString {
         }
     }
 
-    pub unsafe fn from_str(string: &str) -> CWcharString {
-        let c_string = CString::new(string).expect("Invalid C string");
-        CWcharString::from_c_string(&c_string)
+    pub unsafe fn from_str(string: &str) -> Result<CWcharString, ()> {
+        let c_string = CString::new(string);
+        if c_string.is_err() { return Err( () ); }
+
+        Ok(CWcharString::from_c_string(&c_string.unwrap()))
     }
 
     pub unsafe fn as_raw(&self) -> *const wchar {
         &self.data[0] as *const wchar
     }
 
-    pub unsafe fn from_raw_to_c_string(raw: *const wchar) -> CString {
+    pub unsafe fn from_raw_to_c_string(raw: *const wchar) -> Result<CString, ()> {
         let n_bytes = wcstombs(ptr::null_mut(), raw, 0);
 
         let mut data = vec![0 as u8; (n_bytes + 1) as usize];
         let data_ptr = (&mut data[0] as *mut u8) as *mut c_char;
 
         wcstombs(data_ptr, raw, n_bytes + 1);
-        let c_str = CStr::from_bytes_with_nul(data.as_slice()).expect("Invalid c str");
-        c_str.to_owned()
+        let c_str = CStr::from_bytes_with_nul(data.as_slice());
+        if c_str.is_err() { return Err( () ); }
+
+        Ok(c_str.unwrap().to_owned())
     }
 }
 

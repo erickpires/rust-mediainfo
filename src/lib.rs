@@ -8,6 +8,7 @@ use ffi::MediaInfoStream;
 use ffi::MediaInfoInfo;
 
 pub type MediaInfo = ffi::MediaInfo;
+pub type MediaInfoResult<T> = ffi::MediaInfoResult<T>;
 
 impl MediaInfo {
     pub fn from_data(&mut self, data: &[u8]) -> Result<(), String>{
@@ -25,33 +26,35 @@ impl MediaInfo {
         Ok( () )
     }
 
-    pub fn available_parameters(&mut self) -> String {
+    pub fn available_parameters(&mut self) -> MediaInfoResult<String> {
         self.option("Info_Parameters", "")
     }
 
-    pub fn get_title(&mut self) -> String {
+    pub fn get_title(&mut self) -> MediaInfoResult<String> {
         self.get_with_default_options("Title")
     }
 
-    pub fn get_performer(&mut self) -> String {
+    pub fn get_performer(&mut self) -> MediaInfoResult<String> {
         self.get_with_default_options("Performer")
     }
 
-    pub fn get_album(&mut self) -> String {
+    pub fn get_album(&mut self) -> MediaInfoResult<String> {
         self.get_with_default_options("Album")
     }
 
-    pub fn get_genre(&mut self) -> String {
+    pub fn get_genre(&mut self) -> MediaInfoResult<String> {
         self.get_with_default_options("Genre")
     }
 
-    pub fn get_track_name(&mut self) -> String {
+    pub fn get_track_name(&mut self) -> MediaInfoResult<String> {
         self.get_with_default_options("Track")
     }
 
     pub fn get_duration_ms(&mut self) -> Option<u32> {
         let result_str = self.get_with_default_options("Duration");
-        let result = result_str.parse::<u32>();
+        if result_str.is_err() { return None; }
+
+        let result = result_str.unwrap().parse::<u32>();
 
         match result {
             Ok(num) => Some(num),
@@ -61,7 +64,9 @@ impl MediaInfo {
 
     pub fn get_track_number(&mut self) -> Option<u32> {
         let result_str = self.get_with_default_options("Track/Position");
-        let result = result_str.parse::<u32>();
+        if result_str.is_err() { return None; }
+
+        let result = result_str.unwrap().parse::<u32>();
 
         match result {
             Ok(num) => Some(num),
@@ -69,7 +74,8 @@ impl MediaInfo {
         }
     }
 
-    pub fn get_with_default_options(&mut self, parameter: &str) -> String {
+    pub fn get_with_default_options(&mut self, parameter: &str)
+                                    -> MediaInfoResult<String> {
         self.get(MediaInfoStream::General, 0, parameter,
                  MediaInfoInfo::Text, MediaInfoInfo::Name)
     }

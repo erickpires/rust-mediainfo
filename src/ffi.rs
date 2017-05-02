@@ -73,14 +73,17 @@ impl MediaInfo {
     }
 
     // NOTE(erick): We could receive a Path instead of a &str.
-    pub fn open(&mut self, path: &str) -> usize {
+    pub fn open(&mut self, path: &str) -> MediaInfoResult<usize> {
         unsafe {
             let path_w_string = CWcharString::from_str(path);
+            if path_w_string.is_err() { return Err(MediaInfoError::RustToCStringError); }
+
+            let path_w_string = path_w_string.unwrap();
             let path_ptr = path_w_string.as_raw();
 
             let result = MediaInfo_Open(self.handle, path_ptr);
 
-            result as usize
+            Ok(result as usize)
         }
     }
 
@@ -108,40 +111,54 @@ impl MediaInfo {
         unsafe { MediaInfo_Open_Buffer_Finalize(self.handle) as usize }
     }
 
-    pub fn option(&mut self, parameter: &str, value: &str) -> String {
+    pub fn option(&mut self, parameter: &str, value: &str) -> MediaInfoResult<String> {
         unsafe {
             let param_w_string = CWcharString::from_str(parameter);
             let value_w_string = CWcharString::from_str(value);
 
-            let param_ptr = param_w_string.as_raw();
-            let value_ptr = value_w_string.as_raw();
+            if param_w_string.is_err(){ return Err(MediaInfoError::RustToCStringError); }
+            if value_w_string.is_err(){ return Err(MediaInfoError::RustToCStringError); }
+
+            let param_ptr = param_w_string.unwrap().as_raw();
+            let value_ptr = value_w_string.unwrap().as_raw();
 
             // TODO(erick): Do we need to free this memory? I could not
             // find this information on the documentation.
             let result_ptr = MediaInfo_Option(self.handle, param_ptr, value_ptr);
             let result_c_string = CWcharString::from_raw_to_c_string(result_ptr);
+            if result_c_string.is_err() { return Err(MediaInfoError::CToRustError); }
 
-            result_c_string.into_string().expect("Could not convert c string")
+            let result = result_c_string.unwrap().into_string();
+            if result.is_err() { return Err(MediaInfoError::CToRustError); }
+
+            Ok(result.unwrap())
         }
     }
 
-    pub fn inform(&mut self, reserved: usize) -> String {
+    pub fn inform(&mut self, reserved: usize) -> MediaInfoResult<String> {
         unsafe {
             // TODO(erick): Do we need to free this memory? I could not
             // find this information on the documentation.
             let result_ptr = MediaInfo_Inform(self.handle, reserved as size_t);
             let result_c_string = CWcharString::from_raw_to_c_string(result_ptr);
+            if result_c_string.is_err() { return Err(MediaInfoError::CToRustError); }
 
-            result_c_string.into_string().expect("Could not convert c string")
+            let result = result_c_string.unwrap().into_string();
+            if result.is_err() { return Err(MediaInfoError::CToRustError); }
+
+            Ok(result.unwrap())
         }
     }
 
     pub fn get(&mut self, info_stream: MediaInfoStream,
                stream_number: usize, parameter: &str,
-               info_kind: MediaInfoInfo, search_kind: MediaInfoInfo) -> String {
+               info_kind: MediaInfoInfo, search_kind: MediaInfoInfo)
+               -> MediaInfoResult<String> {
         unsafe {
             let param_w_string = CWcharString::from_str(parameter);
-            let param_ptr = param_w_string.as_raw();
+            if param_w_string.is_err(){ return Err(MediaInfoError::RustToCStringError); }
+
+            let param_ptr = param_w_string.unwrap().as_raw();
 
             // TODO(erick): Do we need to free this memory? I could not
             // find this information on the documentation.
@@ -150,8 +167,12 @@ impl MediaInfo {
                                            info_kind.c_compatible(),
                                            search_kind.c_compatible());
             let result_c_string = CWcharString::from_raw_to_c_string(result_ptr);
+            if result_c_string.is_err() { return Err(MediaInfoError::CToRustError); }
 
-            result_c_string.into_string().expect("Could not convert c string")
+            let result = result_c_string.unwrap().into_string();
+            if result.is_err() { return Err(MediaInfoError::CToRustError); }
+
+            Ok(result.unwrap())
         }
     }
 }
@@ -163,6 +184,14 @@ impl Drop for MediaInfo {
         }
     }
 }
+
+#[derive(Debug)]
+pub enum MediaInfoError {
+    RustToCStringError,
+    CToRustError,
+}
+
+pub type MediaInfoResult<T> = Result<T, MediaInfoError>;
 
 #[link(name="mediainfo")]
 extern "C" {

@@ -13,7 +13,7 @@ fn main() {
     for filename in tracks.iter() {
         media_info.open(filename);
         println!("Filename: {}", filename);
-        println!("{}\n", media_info.inform(0));
+        println!("{}\n", media_info.inform(0).unwrap());
 
         media_info.close();
     }
