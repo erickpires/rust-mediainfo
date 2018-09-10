@@ -2,8 +2,8 @@
 extern crate libc;
 
 use ::c_w_string::CWcharString;
-
 use std::ffi::CString;
+use std::path::Path;
 
 type uint64 = libc::uint64_t;
 type uint8  = libc::uint8_t;
@@ -18,7 +18,7 @@ type c_MediaInfoInfo   = libc::c_int;
 
 const LC_CTYPE: c_int = 0;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MediaInfoStream {
     General = 0,
     Video,
@@ -33,6 +33,12 @@ pub enum MediaInfoStream {
 impl MediaInfoStream {
     fn c_compatible(self) -> c_MediaInfoStream {
         self as libc::c_int
+    }
+
+    pub fn variants() -> Vec<MediaInfoStream> {
+        // NOTE: Excluding GeneralStream, since every MedinInfo result has a GeneralStream.
+       vec![MediaInfoStream::Video, MediaInfoStream::Audio, MediaInfoStream::Text,
+       MediaInfoStream::Other, MediaInfoStream::Image, MediaInfoStream::Menu, MediaInfoStream::Max]
     }
 }
 
@@ -72,10 +78,9 @@ impl MediaInfo {
         }
     }
 
-    // NOTE(erick): We could receive a Path instead of a &str.
-    pub fn open(&mut self, path: &str) -> MediaInfoResult<usize> {
+    pub fn open(&mut self, path: &Path) -> MediaInfoResult<usize> {
         unsafe {
-            let path_w_string = CWcharString::from_str(path);
+            let path_w_string = CWcharString::from_path(path);
             if path_w_string.is_err() { return Err(MediaInfoError::RustToCStringError); }
 
             let path_w_string = path_w_string.unwrap();
@@ -87,29 +92,13 @@ impl MediaInfo {
         }
     }
 
+
     pub fn close(&mut self) {
         unsafe {
             MediaInfo_Close(self.handle);
         }
     }
 
-    pub fn open_buffer_init(&mut self, buffer_size: u64, offset: u64) -> usize {
-        unsafe { MediaInfo_Open_Buffer_Init(self.handle, buffer_size, offset) as usize }
-    }
-
-    pub fn open_buffer_continue(&mut self, data: &[u8]) -> usize {
-        unsafe {
-            let bytes_ptr = &data[0] as *const uint8;
-            let result = MediaInfo_Open_Buffer_Continue(self.handle,
-                                                        bytes_ptr,
-                                                        data.len() as uint64);
-            result as usize
-        }
-    }
-
-    pub fn open_buffer_finalize(&mut self) -> usize {
-        unsafe { MediaInfo_Open_Buffer_Finalize(self.handle) as usize }
-    }
 
     pub fn option(&mut self, parameter: &str, value: &str) -> MediaInfoResult<String> {
         unsafe {
@@ -138,11 +127,11 @@ impl MediaInfo {
         }
     }
 
-    pub fn inform(&mut self, reserved: usize) -> MediaInfoResult<String> {
+    pub fn inform(&mut self) -> MediaInfoResult<String> {
         unsafe {
             // TODO(erick): Do we need to free this memory? I could not
             // find this information on the documentation.
-            let result_ptr = MediaInfo_Inform(self.handle, reserved as size_t);
+            let result_ptr = MediaInfo_Inform(self.handle, 0 as size_t);
             let result_c_string = CWcharString::from_raw_to_c_string(result_ptr);
             if result_c_string.is_err() { return Err(MediaInfoError::CToRustError); }
 
@@ -153,6 +142,12 @@ impl MediaInfo {
             if result.len() == 0 { return Err(MediaInfoError::ZeroLengthResultError); }
 
             Ok(result)
+        }
+    }
+
+    pub fn count_get(&mut self, stream_kind: MediaInfoStream) -> usize {
+        unsafe {
+            MediaInfo_Count_Get(self.handle, stream_kind.c_compatible(), (usize::max_value()) as size_t) as usize
         }
     }
 
@@ -184,6 +179,28 @@ impl MediaInfo {
             Ok(result)
         }
     }
+
+    pub fn available_parameters(&mut self) -> MediaInfoResult<String> {
+        self.option("Info_Parameters", "")
+    }
+
+    pub fn open_buffer_init(&mut self, buffer_size: u64, offset: u64) -> usize {
+        unsafe { MediaInfo_Open_Buffer_Init(self.handle, buffer_size, offset) as usize }
+    }
+
+    pub fn open_buffer_continue(&mut self, data: &[u8]) -> usize {
+        unsafe {
+            let bytes_ptr = &data[0] as *const uint8;
+            let result = MediaInfo_Open_Buffer_Continue(self.handle,
+                                                        bytes_ptr,
+                                                        data.len() as uint64);
+            result as usize
+        }
+    }
+
+    pub fn open_buffer_finalize(&mut self) -> usize {
+        unsafe { MediaInfo_Open_Buffer_Finalize(self.handle) as usize }
+    }
 }
 
 impl Drop for MediaInfo {
@@ -200,6 +217,7 @@ pub enum MediaInfoError {
     CToRustError,
     ZeroLengthResultError,
     NonNumericResultError,
+    NoDataOpenError,
 }
 
 pub type MediaInfoResult<T> = Result<T, MediaInfoError>;
@@ -209,23 +227,30 @@ pub type MediaInfoResult<T> = Result<T, MediaInfoError>;
 // #[link(name="mediainfo")]
 extern "C" {
     fn MediaInfo_New() -> *mut void;
+
     fn MediaInfo_Delete(handle: *mut void);
 
     fn MediaInfo_Open_Buffer_Init(handle: *mut void,
                                   buffer_size: uint64,
                                   offset: uint64) -> size_t;
+
     fn MediaInfo_Open_Buffer_Continue(handle: *mut void,
                                       bytes: *const uint8,
                                       length: size_t) -> size_t;
+
     fn MediaInfo_Open_Buffer_Finalize(handle: *mut void) -> size_t;
 
     fn MediaInfo_Open(handle: *mut void, path: *const wchar) -> size_t;
+
     fn MediaInfo_Close(handle: *mut void);
 
     fn MediaInfo_Option(handle: *mut void,
                         parameter: *const wchar,
                         value: *const wchar) -> *const wchar;
+
     fn MediaInfo_Inform(handle: *mut void, reserved: size_t) -> *const wchar;
+
+    fn MediaInfo_Count_Get(handle: *mut void, stream_kind: c_MediaInfoStream, stream_number: size_t) -> size_t;
 
     fn MediaInfo_Get(handle: *mut void, info_stream: c_MediaInfoStream,
                      stream_number: size_t, parameter: *const wchar,

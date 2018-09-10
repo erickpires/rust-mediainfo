@@ -14,6 +14,7 @@
 extern crate libc;
 
 use std::ptr;
+use std::path::Path;
 
 use std::ffi::CStr;
 use std::ffi::CString;
@@ -50,6 +51,13 @@ impl CWcharString {
         if c_string.is_err() { return Err( () ); }
 
         Ok(CWcharString::from_c_string(&c_string.unwrap()))
+    }
+
+    pub unsafe fn from_path(in_path: &Path) -> Result<CWcharString, ()> {
+        match in_path.to_str() {
+            Some(p) => CWcharString::from_str(p),
+            None => Err( () ),
+        }
     }
 
     pub unsafe fn as_raw(&self) -> *const wchar {

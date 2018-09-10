@@ -1,10 +1,10 @@
 extern crate mediainfo;
 
-use mediainfo::MediaInfo;
+use mediainfo::MediaInfoWrapper;
 use std::path::PathBuf;
 
 fn main() {
-    let mut media_info = MediaInfo::new();
+    let mut media_info = MediaInfoWrapper::new();
     let sample_path = PathBuf::from("../samples");
     let extnames = ["mp3", "m4a", "flac"];
 
@@ -13,7 +13,7 @@ fn main() {
 
         media_info.open(&filename).expect("It should open the file.");
         println!("Filename: {}", filename.to_str().as_ref().unwrap());
-        println!("{}\n", media_info.inform().unwrap());
+        println!("{}\n", media_info.codec().unwrap());
 
         media_info.close();
     }
