@@ -125,8 +125,8 @@ impl BaseStream for GeneralStream {
     }
 
     fn handler(&self) -> Option<&Rc<RefCell<MediaInfo>>> {
-        match self.handler {
-            Some(ref x) => Some(x),
+        match self.handler.as_ref() {
+            Some(x) => Some(x),
             None => None,
         }
     }

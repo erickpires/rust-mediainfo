@@ -41,7 +41,7 @@ impl CWcharString {
         let n_chars = mbstowcs(wchar_ptr, c_string_ptr, size_needed);
 
         CWcharString {
-            data: data,
+            data,
             n_chars: n_chars as usize,
         }
     }

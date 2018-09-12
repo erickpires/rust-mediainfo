@@ -18,8 +18,8 @@ pub struct MediaInfoWrapper {
     other_streams: Option<Vec<OtherStream>>,
 }
 
-impl MediaInfoWrapper {
-    pub fn new() -> MediaInfoWrapper {
+impl Default for MediaInfoWrapper {
+    fn default() -> Self {
         MediaInfoWrapper {
             general_stream: GeneralStream {
                 stream_type: MediaInfoStream::General,
@@ -34,6 +34,12 @@ impl MediaInfoWrapper {
             handle: Rc::new(RefCell::new(MediaInfo::new())),
         }
     }
+}
+
+impl MediaInfoWrapper {
+    pub fn new() -> MediaInfoWrapper {
+        Default::default()
+    }
 
     pub fn open(&mut self, path: &Path) -> MediaInfoResult<usize> {
         let result = self.handle.borrow_mut().open(path);
@@ -47,7 +53,7 @@ impl MediaInfoWrapper {
         }
     }
 
-    pub fn from_data(&mut self, data: &[u8]) -> Result<(), String>{
+    pub fn open_data(&mut self, data: &[u8]) -> Result<(), String>{
         let data_len = data.len();
         if data_len == 0 { return Err("Data length is 0".to_string()); }
 
@@ -257,7 +263,7 @@ mod tests {
         let filename = sample_path.join("sample.mp4");
         let mut mw = MediaInfoWrapper::new();
         let contents = fs::read(filename).expect("File not found.");
-        mw.from_data(contents.as_slice()).expect("Could not read from buffer.");
+        mw.open_data(contents.as_slice()).expect("Could not read from buffer.");
 
         assert_eq!("mp42", mw.codec_id().unwrap());
     }

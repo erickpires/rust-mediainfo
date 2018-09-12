@@ -65,8 +65,8 @@ pub struct MediaInfo {
     handle: *mut void,
 }
 
-impl MediaInfo {
-    pub fn new() -> MediaInfo {
+impl Default for MediaInfo {
+    fn default() -> Self {
         unsafe {
             // NOTE(erick): Setting the locale so we can
             // work properly with c wide strings.
@@ -76,6 +76,12 @@ impl MediaInfo {
                 handle : MediaInfo_New(),
             }
         }
+    }
+}
+
+impl MediaInfo {
+    pub fn new() -> MediaInfo {
+        Default::default()
     }
 
     pub fn open(&mut self, path: &Path) -> MediaInfoResult<usize> {
@@ -121,7 +127,7 @@ impl MediaInfo {
             if result.is_err() { return Err(MediaInfoError::CToRustError); }
 
             let result = result.unwrap();
-            if result.len() == 0 { return Err(MediaInfoError::ZeroLengthResultError); }
+            if result.is_empty() { return Err(MediaInfoError::ZeroLengthResultError); }
 
             Ok(result)
         }
@@ -139,7 +145,7 @@ impl MediaInfo {
             if result.is_err() { return Err(MediaInfoError::CToRustError); }
 
             let result = result.unwrap();
-            if result.len() == 0 { return Err(MediaInfoError::ZeroLengthResultError); }
+            if result.is_empty() { return Err(MediaInfoError::ZeroLengthResultError); }
 
             Ok(result)
         }
