@@ -158,45 +158,27 @@ impl MediaInfoWrapper {
     }
 
     pub fn video_streams(&self) -> Option<&Vec<VideoStream>> {
-        match self.video_streams.as_ref() {
-            Some(streams) => Some(streams),
-            None => None,
-        }
+        self.video_streams.as_ref()
     }
 
     pub fn audio_streams(&self) -> Option<&Vec<AudioStream>> {
-        match self.audio_streams.as_ref() {
-            Some(streams) => Some(streams),
-            None => None,
-        }
+        self.audio_streams.as_ref()
     }
 
     pub fn text_streams(&self) -> Option<&Vec<TextStream>> {
-        match self.text_streams.as_ref() {
-            Some(streams) => Some(streams),
-            None => None,
-        }
+        self.text_streams.as_ref()
     }
 
     pub fn image_streams(&self) -> Option<&Vec<ImageStream>> {
-        match self.image_streams.as_ref() {
-            Some(streams) => Some(streams),
-            None => None,
-        }
+        self.image_streams.as_ref()
     }
 
     pub fn other_streams(&self) -> Option<&Vec<OtherStream>> {
-        match self.other_streams.as_ref() {
-            Some(streams) => Some(streams),
-            None => None,
-        }
+        self.other_streams.as_ref()
     }
 
     pub fn menu_streams(&self) -> Option<&Vec<MenuStream>> {
-        match self.menu_streams.as_ref() {
-            Some(streams) => Some(streams),
-            None => None,
-        }
+        self.menu_streams.as_ref()
     }
 
     delegate! {
