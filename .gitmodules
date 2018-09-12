@@ -1,3 +1,3 @@
 [submodule "samples"]
 	path = samples
-	url = https://gitlab.office.flavoursys.com/internal/view-samples.git
+	url = https://github.com/Flavoursys/media-samples.git

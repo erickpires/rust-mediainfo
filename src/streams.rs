@@ -94,26 +94,21 @@ pub trait BaseStream {
     fn handler(&self) -> Option<&Rc<RefCell<MediaInfo>>>;
 
     fn result_to_duration(&self, result: MediaInfoResult<String>) -> MediaInfoResult<Duration> {
-        let value = result?;
-        let value = match value.parse::<u64>() {
-            Ok(x) => x,
-            Err(_) => return Err(MediaInfoError::NonNumericResultError),
-        };
-
-        Ok(Duration::from_millis(value))
+        match result?.parse::<u64>() {
+            Ok(x) => Ok(Duration::from_millis(x)),
+            Err(_) =>Err(MediaInfoError::NonNumericResultError),
+        }
     }
 
     fn result_to_i64(&self, result: MediaInfoResult<String>) -> MediaInfoResult<i64> {
-        let value = result?;
-        match value.parse::<i64>() {
+        match result?.parse::<i64>() {
             Ok(x) => Ok(x),
             Err(_) => Err(MediaInfoError::NonNumericResultError),
         }
     }
 
     fn result_to_date(&self, result: MediaInfoResult<String>) -> MediaInfoResult<DateTime<UTC>> {
-        let value = result?;
-        match NaiveDateTime::parse_from_str(&value, "UTC %Y-%m-%d %H:%M:%S") {
+        match NaiveDateTime::parse_from_str(&result?, "UTC %Y-%m-%d %H:%M:%S") {
             Ok(x) => Ok(DateTime::<UTC>::from_utc(x, UTC)),
             Err(_) => Err(MediaInfoError::NonNumericResultError),
         }

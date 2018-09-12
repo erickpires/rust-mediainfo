@@ -50,11 +50,10 @@ impl MediaInfoWrapper {
     pub fn from_data(&mut self, data: &[u8]) -> Result<(), String>{
         let data_len = data.len();
         if data_len == 0 { return Err("Data length is 0".to_string()); }
-        let minfo = Rc::new(RefCell::new(MediaInfo::new()));
 
-        minfo.borrow_mut().open_buffer_init(data_len as u64, 0);
-        let continue_result = minfo.borrow_mut().open_buffer_continue(data);
-        let finalize_result = minfo.borrow_mut().open_buffer_finalize();
+        self.handle.borrow_mut().open_buffer_init(data_len as u64, 0);
+        let continue_result = self.handle.borrow_mut().open_buffer_continue(data);
+        let finalize_result = self.handle.borrow_mut().open_buffer_finalize();
 
         if continue_result & 0x01 == 0 || finalize_result == 0 {
             return Err("Could not read buffer".to_string());
@@ -153,43 +152,43 @@ impl MediaInfoWrapper {
     }
 
     pub fn video_streams(&self) -> Option<&Vec<VideoStream>> {
-        match self.video_streams {
-            Some(ref streams) => Some(streams),
+        match self.video_streams.as_ref() {
+            Some(streams) => Some(streams),
             None => None,
         }
     }
 
     pub fn audio_streams(&self) -> Option<&Vec<AudioStream>> {
-        match self.audio_streams {
-            Some(ref streams) => Some(streams),
+        match self.audio_streams.as_ref() {
+            Some(streams) => Some(streams),
             None => None,
         }
     }
 
     pub fn text_streams(&self) -> Option<&Vec<TextStream>> {
-        match self.text_streams {
-            Some(ref streams) => Some(streams),
+        match self.text_streams.as_ref() {
+            Some(streams) => Some(streams),
             None => None,
         }
     }
 
     pub fn image_streams(&self) -> Option<&Vec<ImageStream>> {
-        match self.image_streams {
-            Some(ref streams) => Some(streams),
+        match self.image_streams.as_ref() {
+            Some(streams) => Some(streams),
             None => None,
         }
     }
 
     pub fn other_streams(&self) -> Option<&Vec<OtherStream>> {
-        match self.other_streams {
-            Some(ref streams) => Some(streams),
+        match self.other_streams.as_ref() {
+            Some(streams) => Some(streams),
             None => None,
         }
     }
 
     pub fn menu_streams(&self) -> Option<&Vec<MenuStream>> {
-        match self.menu_streams {
-            Some(ref streams) => Some(streams),
+        match self.menu_streams.as_ref() {
+            Some(streams) => Some(streams),
             None => None,
         }
     }
@@ -228,6 +227,7 @@ mod tests {
     use super::*;
     use std::path::PathBuf;
     use chrono::NaiveDate;
+    use std::fs;
 
     #[test]
     fn can_retrieve_general_information() {
@@ -249,6 +249,17 @@ mod tests {
         assert_eq!(3591, mw.footersize().unwrap());
         assert_eq!(DateTime::<UTC>::from_utc(NaiveDate::from_ymd(2010, 3, 20).and_hms(21, 29, 12), UTC), mw.tagged_date().unwrap());
         mw.close();
+    }
+
+    #[test]
+    fn can_retrieve_information_from_buffer() {
+        let sample_path = PathBuf::from("samples");
+        let filename = sample_path.join("sample.mp4");
+        let mut mw = MediaInfoWrapper::new();
+        let contents = fs::read(filename).expect("File not found.");
+        mw.from_data(contents.as_slice()).expect("Could not read from buffer.");
+
+        assert_eq!("mp42", mw.codec_id().unwrap());
     }
 
     #[test]
