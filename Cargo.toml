@@ -1,7 +1,7 @@
 [package]
 name = "mediainfo"
 description = "Rust bindings for libmediainfo"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["Erick Pires <pires@erickpires.com>"]
 license = "MIT"
 links = "mediainfo"
