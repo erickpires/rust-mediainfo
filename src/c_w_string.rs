@@ -10,10 +10,11 @@
 // between efficiency and safety. It would not have to be this way
 // if C had a better string implementation.
 
-#![allow(dead_code, non_camel_case_types)]
+#![allow(non_camel_case_types)]
 extern crate libc;
 
 use std::ptr;
+use std::path::Path;
 
 use std::ffi::CStr;
 use std::ffi::CString;
@@ -40,7 +41,7 @@ impl CWcharString {
         let n_chars = mbstowcs(wchar_ptr, c_string_ptr, size_needed);
 
         CWcharString {
-            data: data,
+            data,
             n_chars: n_chars as usize,
         }
     }
@@ -50,6 +51,13 @@ impl CWcharString {
         if c_string.is_err() { return Err( () ); }
 
         Ok(CWcharString::from_c_string(&c_string.unwrap()))
+    }
+
+    pub unsafe fn from_path(in_path: &Path) -> Result<CWcharString, ()> {
+        match in_path.to_str() {
+            Some(p) => CWcharString::from_str(p),
+            None => Err( () ),
+        }
     }
 
     pub unsafe fn as_raw(&self) -> *const wchar {
