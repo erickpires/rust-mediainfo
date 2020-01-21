@@ -114,12 +114,11 @@ impl MediaInfo {
             if param_w_string.is_err(){ return Err(MediaInfoError::RustToCStringError); }
             if value_w_string.is_err(){ return Err(MediaInfoError::RustToCStringError); }
 
-            let param_ptr = param_w_string.unwrap().as_raw();
-            let value_ptr = value_w_string.unwrap().as_raw();
-
             // TODO(erick): Do we need to free this memory? I could not
             // find this information on the documentation.
-            let result_ptr = MediaInfo_Option(self.handle, param_ptr, value_ptr);
+            let result_ptr = MediaInfo_Option(self.handle,
+                                              param_w_string.unwrap().as_raw(),
+                                              value_w_string.unwrap().as_raw());
             let result_c_string = CWcharString::from_raw_to_c_string(result_ptr);
             if result_c_string.is_err() { return Err(MediaInfoError::CToRustError); }
 
@@ -165,12 +164,11 @@ impl MediaInfo {
             let param_w_string = CWcharString::from_str(parameter);
             if param_w_string.is_err(){ return Err(MediaInfoError::RustToCStringError); }
 
-            let param_ptr = param_w_string.unwrap().as_raw();
-
             // TODO(erick): Do we need to free this memory? I could not
             // find this information on the documentation.
             let result_ptr = MediaInfo_Get(self.handle, info_stream.c_compatible(),
-                                           stream_number as size_t, param_ptr,
+                                           stream_number as size_t,
+                                           param_w_string.unwrap().as_raw(),
                                            info_kind.c_compatible(),
                                            search_kind.c_compatible());
             let result_c_string = CWcharString::from_raw_to_c_string(result_ptr);

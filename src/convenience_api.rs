@@ -229,7 +229,7 @@ mod tests {
         assert_eq!(Duration::from_millis(5568), mw.duration().unwrap());
         assert_eq!("MPEG-4", mw.format().unwrap());
         assert_eq!("Base Media / Version 2", mw.format_profile().unwrap());
-        assert_eq!("MPEG-4", mw.codec().unwrap());
+        assert!(mw.codec().is_err(), "Codec should be empty");
         assert_eq!(551194, mw.overall_bit_rate().unwrap());
         assert_eq!("HandBrake 0.9.4 2009112300", mw.writing_application().unwrap());
         assert_eq!(160, mw.headersize().unwrap());
